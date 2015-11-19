@@ -1,0 +1,31 @@
+{
+  "name": "react-file-uploader",
+  "version": "0.1.0",
+  "description": "A set of file-upload-components with React.js.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lionng429/react-file-uploader.git"
+  },
+  "keywords": [
+    "react",
+    "file",
+    "uploader"
+  ],
+  "author": "Marston Ng <tcng@rakudesignstudio.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lionng429/react-file-uploader/issues"
+  },
+  "homepage": "https://github.com/lionng429/react-file-uploader",
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "mocha": "^2.3.4"
+  },
+  "peerDependencies": {
+    "react": "^0.14.0"
+  }
+}
