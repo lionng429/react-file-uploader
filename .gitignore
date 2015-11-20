@@ -30,4 +30,4 @@ node_modules
 .idea
 
 # Transformed source
-./lib
+lib
