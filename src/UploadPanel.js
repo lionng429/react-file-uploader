@@ -9,8 +9,10 @@ class UploadPanel extends Component {
 
         this.onFileDrop = this.onFileDrop.bind(this);
 
-        this.state.isDragOver = false;
-        this.state.files = {};
+        this.state = {
+            isDragOver: false,
+            files: {}
+        }
     }
 
     componentWillMount() {
@@ -34,10 +36,6 @@ class UploadPanel extends Component {
             window.removeEventListener('dragover', onDragOver);
             window.removeEventListener('drop', this.onFileDrop);
         }
-    }
-
-    onDragOver(e) {
-
     }
 
     onFileDrop(e) {

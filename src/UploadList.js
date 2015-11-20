@@ -1,5 +1,6 @@
 import React, { Component, PropTypes } from 'react';
 import invariant from 'invariant';
+import classNames from 'classnames';
 import UploadListRow from './UploadListRow';
 
 class UploadList extends Component {
@@ -8,7 +9,7 @@ class UploadList extends Component {
     }
 
     render() {
-        let { files, onUploadDone, onUploadError } = this.props;
+        let { files, customClass, style, upload, onUploadDone, onUploadError } = this.props;
 
         return (
             <div className={classNames(customClass)} ref="upload-list" style={style}>
