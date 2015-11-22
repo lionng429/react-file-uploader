@@ -1,6 +1,6 @@
 # react-file-uploader
 
-react-file-uploader is a set of components written in React.js which helps you to upload file easily.
+react-file-uploader is a set of components written in React.js which helps you to upload file easily. You can check out the [LIVE DEMO](http://23.254.164.88:3000) here.
 
 ### Installation
 
@@ -186,7 +186,7 @@ UPLOADED = 2
 ### TODOs
 
 * add test cases
-* add example
+* ~~add example~~
 * support optional data, i.e. custom image name and destination
 
 ### License

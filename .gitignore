@@ -31,3 +31,9 @@ node_modules
 
 # Transformed source
 lib
+
+# npmignore
+.npmignore
+
+# Examples
+examples/**/bundle.js
