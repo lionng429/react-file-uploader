@@ -4,5 +4,9 @@ import UploadHandler from './UploadHandler';
 import status from './constants/status';
 
 export {
-    Receiver, UploadManager, UploadHandler, status
+  Receiver,
+  UploadManager,
+  UploadHandler,
+  status,
 }
+
