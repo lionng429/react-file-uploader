@@ -7,7 +7,8 @@
     "clean": "rm -rf lib",
     "test": "jest",
     "build:lib": "babel src --out-dir lib",
-    "build": "npm run clean && npm run build:lib"
+    "build": "npm run eslint && npm run clean && npm run build:lib",
+    "eslint": "eslint ./src/*.js ./src/**/*.js"
   },
   "repository": {
     "type": "git",
@@ -31,6 +32,11 @@
     "babel-preset-es2015": "^6.1.18",
     "babel-preset-react": "^6.1.18",
     "babel-preset-stage-0": "^6.1.18",
+    "eslint": "^2.11.1",
+    "eslint-config-airbnb": "^9.0.1",
+    "eslint-plugin-import": "^1.8.1",
+    "eslint-plugin-jsx-a11y": "^1.3.0",
+    "eslint-plugin-react": "^5.1.1",
     "jest-cli": "*",
     "jsdom": "^7.0.2",
     "react-addons-test-utils": "^0.14.8 || ^15.0.0",
