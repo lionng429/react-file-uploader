@@ -31,14 +31,14 @@
     "babel-preset-react": "^6.1.18",
     "babel-preset-stage-0": "^6.1.18",
     "chai": "^3.4.1",
-    "mocha": "^2.3.4"
+    "mocha": "^2.3.4",
   },
   "peerDependencies": {
     "classnames": "^2.2.0",
     "invariant": "^2.2.0",
     "lodash": "^3.10.1",
     "rand-token": "^0.2.1",
-    "react": "^0.14.3",
+    "react": "^0.14.8 || ^15.0.0",
     "superagent": "^1.4.0"
-  }
+  },
 }
