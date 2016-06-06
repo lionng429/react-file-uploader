@@ -1,5 +1,4 @@
 import React, { Component, PropTypes } from 'react';
-import invariant from 'invariant';
 import classNames from 'classnames';
 import { suid } from 'rand-token';
 import status from './constants/status';
@@ -16,8 +15,8 @@ class Receiver extends Component {
     // this is to monitor the hierarchy
     // for window onDragEnter event
     this.state = {
-      dragLevel: 0
-    }
+      dragLevel: 0,
+    };
   }
 
   componentDidMount() {
@@ -35,36 +34,37 @@ class Receiver extends Component {
   }
 
   onDragEnter(e) {
-    this.setState({
-      dragLevel: this.state.dragLevel + 1
-    });
+    const dragLevel = this.state.dragLevel + 1;
+
+    this.setState({ dragLevel });
 
     if (!this.props.isOpen) {
-      return this.props.onDragEnter(e);
+      this.props.onDragEnter(e);
     }
   }
 
   onDragLeave(e) {
-    let dragLevel = this.state.dragLevel - 1;
+    const dragLevel = this.state.dragLevel - 1;
 
     this.setState({ dragLevel });
 
-    if (dragLevel == 0) {
-      return this.props.onDragLeave(e);
+    if (dragLevel === 0) {
+      this.props.onDragLeave(e);
     }
   }
 
   onDragOver(e) {
-    e.preventDefault && e.preventDefault();
+    e.preventDefault();
     return this.props.onDragOver(e);
   }
 
   onFileDrop(e) {
+    // eslint-disable-next-line no-param-reassign
     e = e || window.event;
-    e.preventDefault && e.preventDefault();
+    e.preventDefault();
 
-    let fileList = e.dataTransfer.files;
-    let files = [];
+    const fileList = e.dataTransfer.files;
+    const files = [];
 
     for (let i = 0; i < fileList.length; i ++) {
       fileList[i].id = suid(4);
@@ -81,14 +81,15 @@ class Receiver extends Component {
   }
 
   render() {
-    let { isOpen, customClass, style, children } = this.props;
+    const { isOpen, customClass, style, children } = this.props;
 
     return (
-      !isOpen ? null :
-      <div className={classNames(customClass)} style={style}>
-        { children }
-      </div>
-    )
+      isOpen ? (
+        <div className={classNames(customClass)} style={style}>
+          {children}
+        </div>
+      ) : null
+    );
   }
 }
 
@@ -96,13 +97,17 @@ Receiver.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   customClass: PropTypes.oneOfType([
     PropTypes.string,
-    PropTypes.arrayOf(PropTypes.string)
+    PropTypes.arrayOf(PropTypes.string),
   ]),
   style: PropTypes.object,
+  children: PropTypes.oneOfType([
+    PropTypes.element,
+    PropTypes.arrayOf(PropTypes.element),
+  ]),
   onDragEnter: PropTypes.func.isRequired,
   onDragOver: PropTypes.func,
   onDragLeave: PropTypes.func.isRequired,
-  onFileDrop: PropTypes.func.isRequired
+  onFileDrop: PropTypes.func.isRequired,
 };
 
 export default Receiver;

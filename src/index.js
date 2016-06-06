@@ -8,5 +8,5 @@ export {
   UploadManager,
   UploadHandler,
   status,
-}
+};
 
