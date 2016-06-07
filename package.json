@@ -6,6 +6,7 @@
   "scripts": {
     "clean": "rm -rf lib",
     "test": "jest",
+    "test:report": "jest --coverage",
     "build:lib": "babel src --out-dir lib",
     "build": "npm run eslint && npm run clean && npm run build:lib",
     "eslint": "eslint ./src/*.js ./src/**/*.js"
