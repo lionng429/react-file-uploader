@@ -1,4 +1,5 @@
 import React, { Component, PropTypes } from 'react';
+import invariant from 'invariant';
 import classNames from 'classnames';
 import { suid } from 'rand-token';
 import status from './constants/status';
@@ -20,6 +21,11 @@ class Receiver extends Component {
   }
 
   componentDidMount() {
+    invariant(
+      !!window.DragEvent && !!window.DataTransfer,
+      'Upload end point must be provided to upload files'
+    );
+
     window.addEventListener('dragenter', this.onDragEnter);
     window.addEventListener('dragleave', this.onDragLeave);
     window.addEventListener('dragover', this.onDragOver);
@@ -55,7 +61,7 @@ class Receiver extends Component {
 
   onDragOver(e) {
     e.preventDefault();
-    return this.props.onDragOver(e);
+    this.props.onDragOver(e);
   }
 
   onFileDrop(e) {
@@ -63,21 +69,24 @@ class Receiver extends Component {
     e = e || window.event;
     e.preventDefault();
 
-    const fileList = e.dataTransfer.files;
     const files = [];
 
-    for (let i = 0; i < fileList.length; i ++) {
-      fileList[i].id = suid(4);
-      fileList[i].status = status.PENDING;
-      fileList[i].progress = 0;
-      fileList[i].src = null;
-      files.push(fileList[i]);
+    if (!!e.dataTransfer) {
+      const fileList = e.dataTransfer.files || [];
+
+      for (let i = 0; i < fileList.length; i ++) {
+        fileList[i].id = suid(4);
+        fileList[i].status = status.PENDING;
+        fileList[i].progress = 0;
+        fileList[i].src = null;
+        files.push(fileList[i]);
+      }
     }
 
     // reset drag level once dropped
     this.setState({ dragLevel: 0 });
 
-    return this.props.onFileDrop(e.target, files);
+    this.props.onFileDrop(e, files);
   }
 
   render() {
