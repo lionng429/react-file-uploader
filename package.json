@@ -1,6 +1,6 @@
 {
   "name": "react-file-uploader",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "A set of file-upload-components with React.js.",
   "main": "lib/index.js",
   "scripts": {
@@ -44,12 +44,7 @@
     "react-dom": "^0.14.8 || ^15.0.0"
   },
   "peerDependencies": {
-    "classnames": "^2.2.0",
-    "invariant": "^2.2.0",
-    "lodash": ">=3.10.1",
-    "rand-token": "^0.2.1",
-    "react": "^0.14.8 || ^15.0.0",
-    "superagent": "^1.4.0"
+    "react": "^0.14.8 || ^15.0.0"
   },
   "jest": {
     "scriptPreprocessor": "<rootDir>/node_modules/babel-jest",
@@ -62,5 +57,13 @@
       "<rootDir>/node_modules/react-addons-test-utils",
       "<rootDir>/node_modules/jsdom"
     ]
+  },
+  "dependencies": {
+    "debug": "^2.2.0",
+    "classnames": "^2.2.0",
+    "invariant": "^2.2.0",
+    "lodash": ">=3.10.1",
+    "rand-token": "^0.2.1",
+    "superagent": "^1.4.0"
   }
 }

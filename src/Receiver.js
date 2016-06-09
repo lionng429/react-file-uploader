@@ -103,20 +103,20 @@ class Receiver extends Component {
 }
 
 Receiver.propTypes = {
-  isOpen: PropTypes.bool.isRequired,
-  customClass: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.arrayOf(PropTypes.string),
-  ]),
-  style: PropTypes.object,
   children: PropTypes.oneOfType([
     PropTypes.element,
     PropTypes.arrayOf(PropTypes.element),
   ]),
+  customClass: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.arrayOf(PropTypes.string),
+  ]),
+  isOpen: PropTypes.bool.isRequired,
   onDragEnter: PropTypes.func.isRequired,
   onDragOver: PropTypes.func,
   onDragLeave: PropTypes.func.isRequired,
   onFileDrop: PropTypes.func.isRequired,
+  style: PropTypes.object,
 };
 
 export default Receiver;
