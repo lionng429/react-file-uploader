@@ -1,6 +1,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 var FileUploader = require('../../lib');
+var _ = require('lodash');
 
 var MyComponent = React.createClass({
     getInitialState: function() {
@@ -30,7 +31,7 @@ var MyComponent = React.createClass({
         //}
     },
 
-    onFileDrop: function(target, files) {
+    onFileDrop: function({ target }, files) {
         let node = ReactDOM.findDOMNode(this.refs.uploadPanel);
         if (target != node) {
             return false;
@@ -50,6 +51,20 @@ var MyComponent = React.createClass({
         // if you want to close the panel upon file drop
         this.closePanel();
     },
+
+    onFileProgress: function(file) {
+    var files = this.state.files;
+
+    files.map(function(_file) {
+        if (_file.id === file.id) {
+            _file = file;
+        }
+    });
+
+    this.setState({
+        files: files
+    });
+},
 
     onFileUpdate: function(file) {
         var files = this.state.files;
@@ -106,36 +121,39 @@ var MyComponent = React.createClass({
                         }
                     </p>
                 </FileUploader.Receiver>
-                <FileUploader.UploadManager
-                    customClass="upload-list"
-                    files={this.state.files}
-                    uploadUrl="/upload"
-                    onUploadStart={this.onFileUpdate}
-                    onUploadProgress={this.onFileUpdate}
-                    onUploadEnd={this.onFileUpdate} >
+                <div>
                     <p>Upload List</p>
-                    {
-                        this.state.files.map(function(file, index) {
-                            return (
-                                <FileUploader.UploadHandler key={index} file={file} autoStart={true}>
-                                    <dl>
-                                        <dh>{ file.name }</dh>
-                                        <dd>
-                                            <span className="file__id">{ file.id } </span>
-                                            <span className="file__type">{ file.type } </span>
-                                            <span className="file__size">{ file.size / 1000 / 1000 } MB</span>
-                                            <span className="file__progress">{ file.progress }%</span>
-                                            <span className="file__status">
-                                                {_this._getStatusString(file.status)}
-                                            </span>
-                                            <span className="file__error">{ file.error }</span>
-                                        </dd>
-                                    </dl>
-                                </FileUploader.UploadHandler>
-                            )
-                        })
-                    }
-                </FileUploader.UploadManager>
+                    <FileUploader.UploadManager
+                        customClass="upload-list"
+                        files={this.state.files}
+                        uploadUrl="/upload"
+                        onUploadStart={this.onFileUpdate}
+                        onUploadProgress={_.debounce(this.onFileProgress, 150)}
+                        onUploadEnd={this.onFileUpdate}
+                    >
+                        {
+                            this.state.files.map(function(file, index) {
+                                return (
+                                    <FileUploader.UploadHandler key={index} file={file} autoStart={true}>
+                                        <dl>
+                                            <dh>{ file.name }</dh>
+                                            <dd>
+                                                <span className="file__id">{ file.id } </span>
+                                                <span className="file__type">{ file.type } </span>
+                                                <span className="file__size">{ file.size / 1000 / 1000 } MB</span>
+                                                <span className="file__progress">{ file.progress }%</span>
+                                                <span className="file__status">
+                                                    {_this._getStatusString(file.status)}
+                                                </span>
+                                                <span className="file__error">{ file.error }</span>
+                                            </dd>
+                                        </dl>
+                                    </FileUploader.UploadHandler>
+                                )
+                            })
+                        }
+                    </FileUploader.UploadManager>
+                </div>
             </div>
         );
     }
