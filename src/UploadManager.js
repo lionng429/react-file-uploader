@@ -3,18 +3,17 @@ import invariant from 'invariant';
 import classNames from 'classnames';
 import assign from 'lodash/assign';
 import bindKey from 'lodash/bindKey';
-import debounce from 'lodash/debounce';
+import clone from 'lodash/clone';
 import request from 'superagent';
 import uploadStatus from './constants/status';
 
-const debug = require('debug')('UploadManager');
+const debug = require('debug')('react-file-upload:UploadManager');
 
 class UploadManager extends Component {
   constructor(props) {
     super(props);
 
     this.upload = this.upload.bind(this);
-    this.onUploadProgress = this.onUploadProgress.bind(this);
   }
 
   componentDidMount() {
@@ -29,18 +28,14 @@ class UploadManager extends Component {
     );
   }
 
-  onUploadProgress() {
-    const { onUploadProgress } = this.props;
-
-    if (onUploadProgress && typeof onUploadProgress === 'function') {
-      return debounce(this.props.onUploadProgress, 150);
-    }
-
-    return () => debug('onUploadProgress is not provided in props');
-  }
-
   upload(url, file) {
-    const { onUploadStart, onUploadProgress, onUploadEnd, uploadErrorHandler } = this.props;
+    const {
+      onUploadStart,
+      onUploadEnd,
+      onUploadProgress,
+      uploadErrorHandler,
+      uploadHeader = {},
+    } = this.props;
 
     if (typeof onUploadStart === 'function') {
       onUploadStart(assign(file, { status: uploadStatus.UPLOADING }));
@@ -54,12 +49,11 @@ class UploadManager extends Component {
     request
       .post(url)
       .accept('application/json')
+      .set(uploadHeader)
       .send(formData)
       .on('progress', ({ percent }) => {
-        debug(`file upload in progress: ${percent}%`);
-
         if (typeof onUploadProgress === 'function') {
-          this.onUploadProgress(assign(file, {
+          onUploadProgress(assign(file, {
             progress: percent,
             status: uploadStatus.UPLOADING,
           }));
@@ -115,16 +109,17 @@ UploadManager.propTypes = {
   style: PropTypes.object,
   uploadErrorHandler: PropTypes.func.isRequired,
   uploadUrl: PropTypes.string.isRequired,
+  uploadHeader: PropTypes.object,
 };
 
 UploadManager.defaultProps = {
   component: 'ul',
   uploadErrorHandler: (err, res) => {
-    let error;
-    const body = res.body;
+    let error = null;
+    const body = clone(res.body);
 
     if (err) {
-      error = err;
+      error = err.message;
     } else if (body && body.errors) {
       error = body.errors;
     }
