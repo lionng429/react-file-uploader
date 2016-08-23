@@ -28,7 +28,7 @@ class UploadManager extends Component {
     );
   }
 
-  upload(url, file) {
+  upload(url, file, uploadData = {}) {
     const {
       onUploadStart,
       onUploadEnd,
@@ -43,6 +43,15 @@ class UploadManager extends Component {
 
     const formData = new FormData();
     formData.append('file', file);
+
+    Object
+      .keys(uploadData)
+      .filter(dataKey => dataKey !== 'file')
+      .forEach(dataKey => {
+        if (uploadData.hasOwnProperty(dataKey)) {
+          formData.append(dataKey, uploadData[dataKey]);
+        }
+      });
 
     debug(`start uploading file#${file.id} to ${url}`, file);
 

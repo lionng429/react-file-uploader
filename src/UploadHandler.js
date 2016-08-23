@@ -6,11 +6,11 @@ const debug = require('debug')('react-file-upload:UploadHandler');
 
 class UploadHandler extends Component {
   componentDidMount() {
-    const { file, upload, autoStart } = this.props;
+    const { file, upload, uploadData, autoStart } = this.props;
 
     if (file.status === uploadStatus.PENDING && autoStart) {
       debug('autoStart in on, calling upload()');
-      upload(file);
+      upload(file, uploadData);
     }
   }
 
@@ -59,6 +59,7 @@ UploadHandler.propTypes = {
   key: PropTypes.string,
   style: PropTypes.object,
   upload: PropTypes.func.isRequired,
+  uploadData: PropTypes.object,
 };
 
 UploadHandler.defaultProps = {
