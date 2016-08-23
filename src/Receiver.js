@@ -1,7 +1,7 @@
 import React, { Component, PropTypes } from 'react';
 import invariant from 'invariant';
 import classNames from 'classnames';
-import { suid } from 'rand-token';
+import shortid from 'shortid';
 import status from './constants/status';
 
 class Receiver extends Component {
@@ -75,7 +75,7 @@ class Receiver extends Component {
       const fileList = e.dataTransfer.files || [];
 
       for (let i = 0; i < fileList.length; i ++) {
-        fileList[i].id = suid(4);
+        fileList[i].id = shortid.generate();
         fileList[i].status = status.PENDING;
         fileList[i].progress = 0;
         fileList[i].src = null;

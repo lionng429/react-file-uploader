@@ -67,11 +67,12 @@
     ]
   },
   "dependencies": {
-    "debug": "^2.2.0",
     "classnames": "^2.2.0",
+    "debug": "^2.2.0",
     "invariant": "^2.2.0",
     "lodash": ">=3.10.1",
     "rand-token": "^0.2.1",
+    "shortid": "^2.2.6",
     "superagent": "^1.4.0"
   }
 }
