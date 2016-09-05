@@ -58,7 +58,7 @@ UploadHandler.propTypes = {
   file: PropTypes.object.isRequired,
   key: PropTypes.string,
   style: PropTypes.object,
-  upload: PropTypes.func.isRequired,
+  upload: PropTypes.func,
 };
 
 UploadHandler.defaultProps = {
