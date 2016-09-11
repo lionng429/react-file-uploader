@@ -2,7 +2,6 @@
 jest.dontMock('../Receiver');
 jest.dontMock('../index');
 jest.dontMock('classnames');
-jest.dontMock('rand-token');
 
 import React from 'react';
 import ReactDOM from 'react-dom';
