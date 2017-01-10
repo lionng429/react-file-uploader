@@ -29,9 +29,6 @@ node_modules
 # IDE
 .idea
 
-# Transformed source
-lib
-
 # npmignore
 .npmignore
 
