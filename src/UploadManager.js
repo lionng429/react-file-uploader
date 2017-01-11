@@ -44,22 +44,27 @@ class UploadManager extends Component {
             onUploadStart(assign(file, {status: uploadStatus.UPLOADING}));
         }
 
-        let data;
+        let data, type;
         if (!!field) {
             const formData = new FormData();
             formData.append(field, file);
             data = formData;
         } else {
             data = file;
+            type = file.type;
         }
         debug(`start uploading file#${file.id} to ${url}`, file);
 
-        request
+        let req = request
             [method.toLowerCase()](url)
             .accept(accept)
-            .set(uploadHeader)
-            .type(file.type)
-            .send(data)
+            .set(uploadHeader);
+
+        if (!!type) {
+            req = req.type(file.type);
+        }
+
+        req.send(data)
             .on('progress', ({percent}) => {
                 if (typeof onUploadProgress === 'function') {
                     onUploadProgress(assign(file, {
