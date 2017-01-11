@@ -36,13 +36,22 @@ class UploadManager extends Component {
             uploadErrorHandler,
             uploadHeader = {},
             method,
-            accept
+            accept,
+            field,
         } = this.props;
 
         if (typeof onUploadStart === 'function') {
             onUploadStart(assign(file, {status: uploadStatus.UPLOADING}));
         }
 
+        let data;
+        if (!!field) {
+            const formData = new FormData();
+            formData.append(field, file);
+            data = formData;
+        } else {
+            data = file;
+        }
         debug(`start uploading file#${file.id} to ${url}`, file);
 
         request
@@ -50,7 +59,7 @@ class UploadManager extends Component {
             .accept(accept)
             .set(uploadHeader)
             .type(file.type)
-            .send(file)
+            .send(data)
             .on('progress', ({percent}) => {
                 if (typeof onUploadProgress === 'function') {
                     onUploadProgress(assign(file, {
@@ -112,12 +121,14 @@ UploadManager.propTypes = {
     uploadHeader: PropTypes.object,
     method: PropTypes.string,
     accept: PropTypes.string,
+    field: PropTypes.string,
 };
 
 UploadManager.defaultProps = {
     component: 'ul',
     method: 'post',
     accept: 'application/json',
+    field: 'file',
     uploadErrorHandler: (err, res) => {
         let error = null;
         const body = clone(res.body);
