@@ -44,6 +44,7 @@
     "jest-cli": "*",
     "jsdom": "^7.0.2",
     "nock": "^8.0.0",
+    "prop-types": "^15.5.10",
     "react-addons-test-utils": "^0.14.8 || ^15.0.0",
     "react-dom": "^0.14.8 || ^15.0.0"
   },
