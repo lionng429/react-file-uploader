@@ -1,4 +1,5 @@
-import React, { Component, PropTypes, cloneElement } from 'react';
+import React, { Component, cloneElement } from 'react';
+import PropTypes from 'prop-types';
 import invariant from 'invariant';
 import classNames from 'classnames';
 import assign from 'lodash/assign';
