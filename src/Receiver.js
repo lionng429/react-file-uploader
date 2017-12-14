@@ -27,17 +27,17 @@ class Receiver extends Component {
       'Upload end point must be provided to upload files'
     );
 
-    window.addEventListener('dragenter', this.onDragEnter);
-    window.addEventListener('dragleave', this.onDragLeave);
-    window.addEventListener('dragover', this.onDragOver);
-    window.addEventListener('drop', this.onFileDrop);
+    (document.getElementById(this.props.wrapperId) || window).addEventListener('dragenter', this.onDragEnter);
+    (document.getElementById(this.props.wrapperId) || window).addEventListener('dragleave', this.onDragLeave);
+    (document.getElementById(this.props.wrapperId) || window).addEventListener('dragover', this.onDragOver);
+    (document.getElementById(this.props.wrapperId) || window).addEventListener('drop', this.onFileDrop);
   }
 
   componentWillUnmount() {
-    window.removeEventListener('dragenter', this.onDragEnter);
-    window.removeEventListener('dragleave', this.onDragLeave);
-    window.removeEventListener('dragover', this.onDragOver);
-    window.removeEventListener('drop', this.onFileDrop);
+    (document.getElementById(this.props.wrapperId) || window).removeEventListener('dragenter', this.onDragEnter);
+    (document.getElementById(this.props.wrapperId) || window).removeEventListener('dragleave', this.onDragLeave);
+    (document.getElementById(this.props.wrapperId) || window).removeEventListener('dragover', this.onDragOver);
+    (document.getElementById(this.props.wrapperId) || window).removeEventListener('drop', this.onFileDrop);
   }
 
   onDragEnter(e) {
@@ -118,6 +118,7 @@ Receiver.propTypes = {
   onDragLeave: PropTypes.func.isRequired,
   onFileDrop: PropTypes.func.isRequired,
   style: PropTypes.object,
+  wrapperId: PropTypes.string,
 };
 
 export default Receiver;
