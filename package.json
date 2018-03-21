@@ -5,10 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "clean": "rm -rf lib",
-    "test": "jest",
-    "test:report": "jest --coverage",
     "build:lib": "babel src --out-dir lib",
-    "build": "npm run eslint && npm run test && npm run clean && npm run build:lib",
+    "build": "npm run eslint && npm run clean && npm run build:lib",
     "eslint": "eslint ./src/*.js ./src/**/*.js",
     "prepublish": "npm run build"
   },
@@ -46,6 +44,7 @@
     "jsdom": "^7.0.2",
     "nock": "^8.0.0",
     "prop-types": "^15.5.10",
+    "react": "^0.14.8 || ^15.0.0",
     "react-addons-test-utils": "^0.14.8 || ^15.0.0",
     "react-dom": "^0.14.8 || ^15.0.0"
   },
