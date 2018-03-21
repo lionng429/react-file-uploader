@@ -1,6 +1,6 @@
 {
   "name": "react-file-uploader",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "A set of file-upload-components with React.js.",
   "main": "lib/index.js",
   "scripts": {
@@ -9,7 +9,8 @@
     "test:report": "jest --coverage",
     "build:lib": "babel src --out-dir lib",
     "build": "npm run eslint && npm run test && npm run clean && npm run build:lib",
-    "eslint": "eslint ./src/*.js ./src/**/*.js"
+    "eslint": "eslint ./src/*.js ./src/**/*.js",
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
