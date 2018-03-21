@@ -5,8 +5,10 @@
   "main": "lib/index.js",
   "scripts": {
     "clean": "rm -rf lib",
+    "test": "jest fake-test.js",
+    "test:report": "jest fake-test.js --coverage",
     "build:lib": "babel src --out-dir lib",
-    "build": "npm run eslint && npm run clean && npm run build:lib",
+    "build": "npm run eslint && npm run test && npm run clean && npm run build:lib",
     "eslint": "eslint ./src/*.js ./src/**/*.js",
     "prepublish": "npm run build"
   },
