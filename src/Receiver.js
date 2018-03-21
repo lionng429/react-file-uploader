@@ -24,8 +24,8 @@ class Receiver extends Component {
 
   componentDidMount() {
     invariant(
-      !!window.DragEvent && !!window.DataTransfer,
-      'Upload end point must be provided to upload files'
+      (!!window.DragEvent || !!window.Event) && !!window.DataTransfer,
+      'Browser does not support DnD events or File API.'
     );
 
     this.wrapper.addEventListener('dragenter', this.onDragEnter);
