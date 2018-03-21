@@ -42,6 +42,10 @@ class Receiver extends Component {
   }
 
   onDragEnter(e) {
+    if (!e.dataTransfer.types.includes('Files')) {
+      return;
+    }
+
     const dragLevel = this.state.dragLevel + 1;
 
     this.setState({ dragLevel });
