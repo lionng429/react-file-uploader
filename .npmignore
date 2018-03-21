@@ -1,0 +1,17 @@
+# ES2015 source
+src
+
+# Test coverage
+coverage
+
+# Examples
+examples
+
+# Babel
+.babelrc
+
+# ESLint
+.eslintrc
+
+# IDE
+.idea
