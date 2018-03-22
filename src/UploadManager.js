@@ -31,9 +31,16 @@ class UploadManager extends Component {
 
   upload(url, file) {
     const {
+      reqConfigs: {
+        accept = 'application/json',
+        method = 'post',
+        timeout,
+        withCredentials = false,
+      },
       onUploadStart,
       onUploadEnd,
       onUploadProgress,
+      formDataParser,
       uploadErrorHandler,
       uploadHeader = {},
     } = this.props;
@@ -42,15 +49,28 @@ class UploadManager extends Component {
       onUploadStart(assign(file, { status: uploadStatus.UPLOADING }));
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
+    let formData = new FormData();
+    formData = formDataParser(formData, file);
+
+    let request = request[method.toLowerCase()](url)
+      .accept(accept)
+      .set(uploadHeader);
+
+    if (file.type) {
+      request.type(file.type);
+    }
+
+    if (timeout) {
+      request.timeout(timeout);
+    }
+
+    if (withCredentials) {
+      request.withCredentials();
+    }
 
     debug(`start uploading file#${file.id} to ${url}`, file);
 
     request
-      .post(url)
-      .accept('application/json')
-      .set(uploadHeader)
       .send(formData)
       .on('progress', ({ percent }) => {
         if (typeof onUploadProgress === 'function') {
@@ -104,17 +124,31 @@ UploadManager.propTypes = {
     PropTypes.string,
     PropTypes.arrayOf(PropTypes.string),
   ]),
+  formDataParser: PropTypes.func,
   onUploadStart: PropTypes.func,
   onUploadProgress: PropTypes.func,
   onUploadEnd: PropTypes.func.isRequired,
+  reqConfigs: PropTypes.shape({
+    accept: PropTypes.string,
+    method: PropTypes.string,
+    timeout: PropTypes.shape({
+      response: PropTypes.number,
+      deadline: PropTypes.number,
+    }),
+    withCredentials: PropTypes.bool,
+  }),
   style: PropTypes.object,
-  uploadErrorHandler: PropTypes.func.isRequired,
+  uploadErrorHandler: PropTypes.func,
   uploadUrl: PropTypes.string.isRequired,
   uploadHeader: PropTypes.object,
 };
 
 UploadManager.defaultProps = {
   component: 'ul',
+  formDataParser: (formData, file) => {
+    formData.append('file', file);
+    return formData;
+  },
   uploadErrorHandler: (err, res) => {
     let error = null;
     const body = clone(res.body);
