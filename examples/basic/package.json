@@ -1,7 +1,7 @@
 {
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "browserify client.js -o bundle.js -t [ babelify --presets [ es2015 react] --plugins [ transform-class-properties ] ]"
+    "build": "browserify client.js -o bundle.js -t [ babelify --presets [ es2015 react ] ]"
   },
   "dependencies": {
     "connect-multiparty": "^2.0.0",
@@ -14,7 +14,6 @@
   "devDependencies": {
     "babel-preset-es2015": "^6.1.18",
     "babel-preset-react": "^6.1.18",
-    "babel-plugin-transform-class-properties": "^6.24.1",
     "babelify": "^7.2.0",
     "browserify": "^12.0.1"
   }

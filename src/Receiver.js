@@ -24,7 +24,7 @@ class Receiver extends Component {
 
   componentDidMount() {
     invariant(
-      (!!window.DragEvent || !!window.Event) && !!window.DataTransfer,
+      (window.DragEvent || window.Event) && window.DataTransfer,
       'Browser does not support DnD events or File API.'
     );
 
@@ -77,10 +77,10 @@ class Receiver extends Component {
 
     const files = [];
 
-    if (!!e.dataTransfer) {
+    if (e.dataTransfer) {
       const fileList = e.dataTransfer.files || [];
 
-      for (let i = 0; i < fileList.length; i ++) {
+      for (let i = 0; i < fileList.length; i++) {
         fileList[i].id = shortid.generate();
         fileList[i].status = status.PENDING;
         fileList[i].progress = 0;

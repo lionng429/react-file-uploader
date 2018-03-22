@@ -36,15 +36,11 @@
     "babel-jest": "*",
     "babel-preset-es2015": "^6.1.18",
     "babel-preset-react": "^6.1.18",
-    "eslint": "^2.11.1",
-    "eslint-config-airbnb": "^9.0.1",
-    "eslint-plugin-import": "^1.8.1",
-    "eslint-plugin-jsx-a11y": "^1.3.0",
-    "eslint-plugin-react": "^5.1.1",
+    "eslint": "^4.19.1",
+    "eslint-plugin-react": "^7.7.0",
     "jest-cli": "*",
     "jsdom": "^7.0.2",
     "nock": "^8.0.0",
-    "prop-types": "^15.5.10",
     "react": "^16.0.0",
     "react-dom": "^16.0.0"
   },
@@ -72,6 +68,7 @@
     "debug": "^2.2.0",
     "invariant": "^2.2.0",
     "lodash": ">=3.10.1",
+    "prop-types": "^15.5.10",
     "shortid": "^2.2.6",
     "superagent": "^1.4.0"
   }

@@ -1,4 +1,4 @@
-/* eslint-disable no-undef, max-len */
+/* eslint-disable no-undef, max-len, react/no-deprecated, react/no-string-refs, react/no-find-dom-node */
 jest.dontMock('../Receiver');
 jest.dontMock('../index');
 jest.dontMock('classnames');

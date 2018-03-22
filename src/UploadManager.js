@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import assign from 'lodash/assign';
 import bindKey from 'lodash/bindKey';
 import clone from 'lodash/clone';
-import request from 'superagent';
+import superagent from 'superagent';
 import uploadStatus from './constants/status';
 
 const debug = require('debug')('react-file-upload:UploadManager');
@@ -52,13 +52,9 @@ class UploadManager extends Component {
     let formData = new FormData();
     formData = formDataParser(formData, file);
 
-    let request = request[method.toLowerCase()](url)
+    const request = superagent[method.toLowerCase()](url)
       .accept(accept)
       .set(uploadHeader);
-
-    if (file.type) {
-      request.type(file.type);
-    }
 
     if (timeout) {
       request.timeout(timeout);
@@ -149,6 +145,7 @@ UploadManager.defaultProps = {
     formData.append('file', file);
     return formData;
   },
+  reqConfigs: {},
   uploadErrorHandler: (err, res) => {
     let error = null;
     const body = clone(res.body);

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import _ from 'lodash';
-var FileUploader = require('react-file-uploader');
+import * as FileUploader from '../../src/index';
 
 class MyComponent extends Component {
   constructor(props) {
@@ -14,17 +14,24 @@ class MyComponent extends Component {
     };
 
     this.uploadPanel = undefined;
+    this.openPanel = this.openPanel.bind(this);
+    this.closePanel = this.closePanel.bind(this);
+    this.onDragOver = this.onDragOver.bind(this);
+    this.onFileDrop = this.onFileDrop.bind(this);
+    this.onFileProgress = this.onFileProgress.bind(this);
+    this.onFileUpdate = this.onFileUpdate.bind(this);
+    this.setUploadPanelRef = this.setUploadPanelRef.bind(this);
   }
 
-  openPanel = () => {
+  openPanel() {
     this.setState({ isPanelOpen: true });
   }
 
-  closePanel = () => {
+  closePanel() {
     this.setState({ isPanelOpen: false });
   }
 
-  onDragOver = (e) => {
+  onDragOver(e) {
     // your codes here:
     // if you want to check if the files are dragged over
     // a specific DOM node
@@ -35,7 +42,7 @@ class MyComponent extends Component {
     });
   }
 
-  onFileDrop = ({ target }, files) => {
+  onFileDrop({ target }, files) {
     const node = ReactDOM.findDOMNode(this.uploadPanel);
 
     if (target !== node) {
@@ -58,7 +65,7 @@ class MyComponent extends Component {
     this.closePanel();
   }
 
-  onFileProgress = (file) => {
+  onFileProgress(file) {
     const { files = [] } = this.state;
     const newFiles = files.map(item => item.id === file.id ? file : item);
 
@@ -67,7 +74,7 @@ class MyComponent extends Component {
     });
   }
 
-  onFileUpdate = (file) => {
+  onFileUpdate(file) {
     const { files = [] } = this.state;
     const newFiles = files.map(item => item.id === file.id ? file : item);
 
@@ -76,7 +83,7 @@ class MyComponent extends Component {
     });
   }
 
-  setUploadPanelRef = (ref) => {
+  setUploadPanelRef(ref) {
     this.uploadPanel = ref;
   }
 
@@ -133,7 +140,7 @@ class MyComponent extends Component {
               this.state.files.map((file, index) => (
                 <FileUploader.UploadHandler key={index} file={file} autoStart>
                   <dl>
-                    <dh>{file.name}</dh>
+                    <dt>{file.name}</dt>
                     <dd>
                       <span className="file__id">{file.id} </span>
                       <span className="file__type">{file.type} </span>
