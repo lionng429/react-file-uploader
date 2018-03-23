@@ -9,7 +9,16 @@ class Receiver extends Component {
   constructor(props) {
     super(props);
 
-    this.wrapper = document.getElementById(this.props.wrapperId) || window;
+    this.wrapper = window;
+
+    if (props.wrapperId) {
+      this.wrapper = document.getElementById(props.wrapperId);
+    }
+
+    if (!this.wrapper) {
+      throw new Error(`wrapper element with Id ${props.wrapperId} not found.`);
+    }
+
     this.onDragEnter = this.onDragEnter.bind(this);
     this.onDragOver = this.onDragOver.bind(this);
     this.onDragLeave = this.onDragLeave.bind(this);
@@ -32,6 +41,13 @@ class Receiver extends Component {
     this.wrapper.addEventListener('dragleave', this.onDragLeave);
     this.wrapper.addEventListener('dragover', this.onDragOver);
     this.wrapper.addEventListener('drop', this.onFileDrop);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.wrapperId !== this.props.wrapperId) {
+      // eslint-disable-next-line no-console
+      console.warn('[Receiver.js] Change in props.wrapperId is unexpected, no new event listeners will be created.');
+    }
   }
 
   componentWillUnmount() {
@@ -124,6 +140,10 @@ Receiver.propTypes = {
   onFileDrop: PropTypes.func.isRequired,
   style: PropTypes.object,
   wrapperId: PropTypes.string,
+};
+
+Receiver.defaultProps = {
+  isOpen: false
 };
 
 export default Receiver;

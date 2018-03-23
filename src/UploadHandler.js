@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import uploadStatus from './constants/status';
 
-const debug = require('debug')('react-file-upload:UploadHandler');
+const debug = require('debug')('react-file-uploader:UploadHandler');
 
 class UploadHandler extends Component {
   componentDidMount() {
