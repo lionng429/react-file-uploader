@@ -43,11 +43,10 @@
     "jest-cli": "*",
     "jsdom": "^7.0.2",
     "nock": "^8.0.0",
-    "react": "^16.0.0",
-    "react-dom": "^16.0.0"
+    "react-dom": "^15.0.0 || ^16.0.0"
   },
   "peerDependencies": {
-    "react": "^16.0.0"
+    "react": "^15.0.0 || ^16.0.0"
   },
   "jest": {
     "scriptPreprocessor": "<rootDir>/node_modules/babel-jest",
@@ -71,6 +70,7 @@
     "invariant": "^2.2.0",
     "lodash": ">=3.10.1",
     "prop-types": "^15.5.10",
+    "react": "^15.0.0 || ^16.0.0",
     "shortid": "^2.2.6",
     "superagent": "^1.4.0"
   }
