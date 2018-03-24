@@ -45,7 +45,7 @@ class UploadManager extends Component {
     } = this.props;
 
     if (typeof onUploadStart === 'function') {
-      onUploadStart(Object.assign({}, file, { status: uploadStatus.UPLOADING }));
+      onUploadStart(Object.assign(file, { status: uploadStatus.UPLOADING }));
     }
 
     let formData = new FormData();
@@ -69,7 +69,7 @@ class UploadManager extends Component {
       .send(formData)
       .on('progress', ({ percent }) => {
         if (typeof onUploadProgress === 'function') {
-          onUploadProgress(Object.assign({}, file, {
+          onUploadProgress(Object.assign(file, {
             progress: percent,
             status: uploadStatus.UPLOADING,
           }));
@@ -85,7 +85,8 @@ class UploadManager extends Component {
         }
 
         if (typeof onUploadEnd === 'function') {
-          onUploadEnd(Object.assign({}, file, {
+          onUploadEnd(Object.assign(file, {
+            progress: error && 0 || 100,
             error,
             result,
             status: error && uploadStatus.FAILED || uploadStatus.UPLOADED
