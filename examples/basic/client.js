@@ -37,9 +37,11 @@ class MyComponent extends Component {
     // a specific DOM node
     const node = ReactDOM.findDOMNode(this.uploadPanel);
 
-    this.setState({
-      isDragOver: e.target === node,
-    });
+    if (this.state.isDragOver !== (e.target === node)) {
+      this.setState({
+        isDragOver: e.target === node,
+      });
+    }
   }
 
   onFileDrop({ target }, files) {
