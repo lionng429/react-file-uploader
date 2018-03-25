@@ -129,13 +129,13 @@ describe('UploadManager', () => {
       const instance = uploadManager.instance();
       instance.upload(instance.props.uploadUrl, file);
       expect(onUploadStart).toBeCalledWith(Object.assign({}, file, { status: uploadStatus.UPLOADING }));
-      expect(file).toEqual({});
+      expect(file).toEqual({ status: uploadStatus.UPLOADING });
     });
 
     it('should call `props.formDataParser` function if it is given', () => {
       const instance = uploadManager.instance();
       instance.upload(instance.props.uploadUrl, {});
-      expect(formDataParser).toBeCalledWith(new FormData(), {});
+      expect(formDataParser).toBeCalledWith(new FormData(), { status: uploadStatus.UPLOADING });
     });
   });
 });
