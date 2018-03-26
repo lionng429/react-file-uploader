@@ -88,7 +88,7 @@ class UploadManager extends Component {
           onUploadEnd(Object.assign(file, {
             progress: error && 0 || 100,
             error,
-            result,
+            result: error && undefined || result,
             status: error && uploadStatus.FAILED || uploadStatus.UPLOADED
           }));
         }
