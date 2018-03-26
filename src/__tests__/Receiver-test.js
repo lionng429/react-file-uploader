@@ -1,4 +1,4 @@
-/* eslint-disable no-undef, max-len */
+/* eslint-disable no-undef, max-len, no-console */
 jest.dontMock('../Receiver');
 jest.dontMock('../index');
 jest.dontMock('classnames');
@@ -7,9 +7,10 @@ import React from 'react';
 import { shallow, configure } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import { jsdom } from 'jsdom';
+import shortid from 'shortid';
 
 const FileUploader = require('../index');
-const { PENDING } = FileUploader.status;
+const uploadStatus = FileUploader.status;
 const Receiver = FileUploader.Receiver;
 
 configure({ adapter: new Adapter() });
@@ -22,6 +23,8 @@ const testFile = {
   type: 'image/jpg',
   webkitRelativePath: '',
 };
+
+const testFileCopy = JSON.parse(JSON.stringify(testFile));
 
 const files = [testFile];
 
@@ -44,7 +47,8 @@ describe('Receiver', () => {
     dragLeaveEvent,
     dropEvent,
     stringClass = 'receiver',
-    arrayClass = ['react', 'receiver'];
+    arrayClass = ['react', 'receiver'],
+    customStyle = { display: 'block' };
 
   beforeEach(() => {
     global.document = jsdom();
@@ -58,7 +62,7 @@ describe('Receiver', () => {
     dropEvent = createEvent('drop');
   });
 
-  describe('constructor', () => {
+  describe('constructor()', () => {
     let emptyFn = () => {},
       component = (
         <Receiver
@@ -68,6 +72,14 @@ describe('Receiver', () => {
           onFileDrop={emptyFn}
         />
       );
+
+    beforeEach(() => {
+      console.warn = jest.genMockFn();
+    });
+
+    afterEach(() => {
+      console.warn.mockClear();
+    });
 
     it('should throw an error if DnD or File API is not supported', () => {
       global.window.DragEvent = undefined;
@@ -91,6 +103,12 @@ describe('Receiver', () => {
           onFileDrop={emptyFn}
         />
       )).toThrow();
+    });
+
+    it('should console.warn when a new wrapperId is given', () => {
+      const receiver = shallow(component);
+      receiver.setProps({ wrapperId: 'newRandom' });
+      expect(console.warn.mock.calls.length).toBe(1);
     });
   });
 
@@ -236,12 +254,15 @@ describe('Receiver', () => {
   });
 
   describe('callbacks and callback arguments', () => {
-    let onDragEnter,
+    let fileId = 'Ghb19rg1',
+      onDragEnter,
       onDragOver,
       onDragLeave,
       onFileDrop;
 
     beforeEach(() => {
+      shortid.generate = jest.genMockFn().mockReturnValue(fileId);
+
       const mockOnDragEnter = (e) => {
         expect(e.type).toBe('dragenter');
       };
@@ -253,16 +274,15 @@ describe('Receiver', () => {
       };
       const mockOnFileDrop = (e, _files) => {
         expect(e.type).toBe('drop');
+        expect(shortid.generate).toBeCalled();
         const file = _files[0];
-        expect(file.lastModified).toBe(testFile.lastModified);
-        expect(file.lastModifiedDate).toBe(testFile.lastModifiedDate);
-        expect(file.name).toBe(testFile.name);
-        expect(file.size).toBe(testFile.size);
-        expect(file.type).toBe(testFile.type);
-        expect(file.webkitRelativePath).toBe(testFile.webkitRelativePath);
-        expect(file.status).toBe(PENDING);
+        expect(file.id).toBe(fileId);
+        expect(file.status).toBe(uploadStatus.PENDING);
         expect(file.progress).toBe(0);
         expect(file.src).toBe(null);
+        expect(file.data).toEqual(testFile);
+        // to test data mutation
+        expect(testFile).toEqual(testFileCopy);
       };
 
       onDragEnter = mockOnDragEnter;
@@ -284,6 +304,10 @@ describe('Receiver', () => {
       shallow(component);
     });
 
+    afterEach(() => {
+      shortid.generate.mockClear();
+    });
+
     it('should execute the onDragEnter callback with a DragEvent with type `dragenter` as argument', () => {
       window.dispatchEvent(dragEnterEvent);
     });
@@ -296,7 +320,7 @@ describe('Receiver', () => {
       window.dispatchEvent(dragLeaveEvent);
     });
 
-    it('should execute the onFileDrop callback with a DragEvent with type `drop` as argument', () => {
+    it('should execute the onFileDrop callback with a DragEvent with type `drop` as argument and it should not mutate the dataTransfer.files', () => {
       window.dispatchEvent(dropEvent);
     });
   });
@@ -315,6 +339,7 @@ describe('Receiver', () => {
         <Receiver
           isOpen={false}
           files={[]}
+          style={customStyle}
           onDragEnter={mockOnDragEnter}
           onDragOver={mockOnDragOver}
           onDragLeave={mockOnDragLeave}
@@ -349,6 +374,11 @@ describe('Receiver', () => {
         expect(receiver.hasClass(classname)).toBe(true);
       });
     });
+
+    it('should render a div wrapper with applying `props.style`', () => {
+      receiver.setProps({ isOpen: true, style: customStyle });
+      expect(receiver.prop('style')).toEqual(customStyle);
+    });
   });
 });
-/* eslint-enable no-undef, max-len */
+/* eslint-enable no-undef, max-len, no-console */

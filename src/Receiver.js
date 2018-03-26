@@ -87,28 +87,30 @@ class Receiver extends Component {
   }
 
   onFileDrop(e) {
-    // eslint-disable-next-line no-param-reassign
-    e = e || window.event;
     e.preventDefault();
 
-    const files = [];
+    const uploads = [];
 
-    if (e.dataTransfer) {
-      const fileList = e.dataTransfer.files || [];
+    if (e.dataTransfer && e.dataTransfer.files) {
+      const fileList = e.dataTransfer.files;
 
       for (let i = 0; i < fileList.length; i++) {
-        fileList[i].id = shortid.generate();
-        fileList[i].status = status.PENDING;
-        fileList[i].progress = 0;
-        fileList[i].src = null;
-        files.push(fileList[i]);
+        const upload = {
+          id: shortid.generate(),
+          status: status.PENDING,
+          progress: 0,
+          src: null,
+          data: fileList[i]
+        };
+
+        uploads.push(upload);
       }
     }
 
     // reset drag level once dropped
     this.setState({ dragLevel: 0 });
 
-    this.props.onFileDrop(e, files);
+    this.props.onFileDrop(e, uploads);
   }
 
   render() {

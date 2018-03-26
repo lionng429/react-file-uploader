@@ -20,8 +20,13 @@ describe('UploadManager', () => {
   let stringClass = 'receiver',
     arrayClass = ['react', 'receiver'],
     uploadPath = 'http://localhost:3000/api/upload',
+    timeout = {
+      response: 1000,
+      deadline: 1000,
+    },
     children = (<p>children</p>),
     uploadManager,
+    onUploadAbort,
     onUploadStart,
     onUploadProgress,
     onUploadEnd,
@@ -29,26 +34,44 @@ describe('UploadManager', () => {
     err,
     errorResponse,
     successResponse,
-    errorHandler;
+    errorHandler,
+    file,
+    fileCopy;
 
   beforeEach(() => {
     global.document = jsdom();
     global.window = document.parentWindow;
 
+    onUploadAbort = jest.genMockFn();
     onUploadStart = jest.genMockFn();
     onUploadProgress = jest.genMockFn();
     onUploadEnd = jest.genMockFn();
     formDataParser = jest.genMockFn();
+
+    file = { id: 'fileId' };
+    fileCopy = JSON.parse(JSON.stringify(file));
 
     err = new Error('not found');
     errorResponse = { body: { success: false, errors: { message: 'not found' } } };
     successResponse = { body: { success: true } };
     errorHandler = UploadManager.defaultProps.uploadErrorHandler;
 
+    nock('http://localhost:3000')
+      .filteringRequestBody(() => '*')
+      .post('/api/upload', '*')
+      .reply(200, successResponse);
+
     uploadManager = shallow(
       <UploadManager
+        reqConfigs={{
+          accept: 'application/json',
+          method: 'post',
+          timeout: timeout,
+          withCredentials: true,
+        }}
         customClass={stringClass}
         uploadUrl={uploadPath}
+        onUploadAbort={onUploadAbort}
         onUploadStart={onUploadStart}
         onUploadProgress={onUploadProgress}
         onUploadEnd={onUploadEnd}
@@ -60,7 +83,8 @@ describe('UploadManager', () => {
   });
 
   afterEach(() => {
-    uploadManager = null;
+    nock.cleanAll();
+    nock.enableNetConnect();
   });
 
   describe('render()', () => {
@@ -109,33 +133,70 @@ describe('UploadManager', () => {
   });
 
   describe('upload()', () => {
-    let file;
+    it('should declare the request instance', () => {
+      const instance = uploadManager.instance();
+      instance.upload(instance.props.uploadUrl, file);
 
-    beforeEach(() => {
-      file = {};
-
-      nock('http://localhost:3000')
-        .filteringRequestBody(() => '*')
-        .post('/api/upload', '*')
-        .reply(200, successResponse);
-    });
-
-    afterEach(() => {
-      nock.cleanAll();
-      nock.enableNetConnect();
+      const request = instance.requests[file.id];
+      expect(request._timeout).toEqual(timeout);
     });
 
     it('should call `props.onUploadStart` function if it is given', () => {
       const instance = uploadManager.instance();
       instance.upload(instance.props.uploadUrl, file);
-      expect(onUploadStart).toBeCalledWith(Object.assign({}, file, { status: uploadStatus.UPLOADING }));
-      expect(file).toEqual({ status: uploadStatus.UPLOADING });
+      expect(onUploadStart).toBeCalledWith(file.id, { status: uploadStatus.UPLOADING });
+      expect(file).toEqual(fileCopy);
     });
 
     it('should call `props.formDataParser` function if it is given', () => {
       const instance = uploadManager.instance();
-      instance.upload(instance.props.uploadUrl, {});
-      expect(formDataParser).toBeCalledWith(new FormData(), { status: uploadStatus.UPLOADING });
+      const data = {};
+      instance.upload(instance.props.uploadUrl, { data });
+      expect(formDataParser).toBeCalledWith(new FormData(), data);
+    });
+  });
+
+  describe('abort()', () => {
+    let instance, request;
+
+    beforeEach(() => {
+      instance = uploadManager.instance();
+      instance.upload(instance.props.uploadUrl, file);
+      request = instance.requests[file.id];
+      request.abort = jest.genMockFn();
+    });
+
+    afterEach(() => {
+      request.abort.mockClear();
+    });
+
+    it('should call `request.abort()` and `props.onUploadAbort()` if request instance is found.', () => {
+      instance.abort();
+      expect(request.abort).not.toBeCalled();
+
+      instance.abort(file);
+      expect(request.abort).toBeCalled();
+      expect(onUploadAbort).toBeCalledWith(file.id, { status: uploadStatus.ABORTED });
+    });
+  });
+
+  describe('onProgress()', () => {
+    let instance, request, progress = 10;
+
+    beforeEach(() => {
+      instance = uploadManager.instance();
+      instance.upload(instance.props.uploadUrl, file);
+      request = instance.requests[file.id];
+      request.aborted = false;
+      request.xhr = {};
+    });
+
+    it('should call `props.onUploadProgress()` if request is not aborted', (done) => {
+      instance.onProgress(file.id, progress);
+      setTimeout(() => {
+        expect(onUploadProgress).toBeCalledWith(file.id, { progress, status: uploadStatus.UPLOADING });
+        done();
+      }, instance.props.progressDebounce);
     });
   });
 });
