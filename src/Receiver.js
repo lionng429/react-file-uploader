@@ -9,7 +9,16 @@ class Receiver extends Component {
   constructor(props) {
     super(props);
 
-    this.wrapper = document.getElementById(this.props.wrapperId) || window;
+    this.wrapper = window;
+
+    if (props.wrapperId) {
+      this.wrapper = document.getElementById(props.wrapperId);
+    }
+
+    if (!this.wrapper) {
+      throw new Error(`wrapper element with Id ${props.wrapperId} not found.`);
+    }
+
     this.onDragEnter = this.onDragEnter.bind(this);
     this.onDragOver = this.onDragOver.bind(this);
     this.onDragLeave = this.onDragLeave.bind(this);
@@ -24,14 +33,21 @@ class Receiver extends Component {
 
   componentDidMount() {
     invariant(
-      !!window.DragEvent && !!window.DataTransfer,
-      'Upload end point must be provided to upload files'
+      (window.DragEvent || window.Event) && window.DataTransfer,
+      'Browser does not support DnD events or File API.'
     );
 
     this.wrapper.addEventListener('dragenter', this.onDragEnter);
     this.wrapper.addEventListener('dragleave', this.onDragLeave);
     this.wrapper.addEventListener('dragover', this.onDragOver);
     this.wrapper.addEventListener('drop', this.onFileDrop);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.wrapperId !== this.props.wrapperId) {
+      // eslint-disable-next-line no-console
+      console.warn('[Receiver.js] Change in props.wrapperId is unexpected, no new event listeners will be created.');
+    }
   }
 
   componentWillUnmount() {
@@ -42,6 +58,10 @@ class Receiver extends Component {
   }
 
   onDragEnter(e) {
+    if (!e.dataTransfer.types.includes('Files')) {
+      return;
+    }
+
     const dragLevel = this.state.dragLevel + 1;
 
     this.setState({ dragLevel });
@@ -73,10 +93,10 @@ class Receiver extends Component {
 
     const files = [];
 
-    if (!!e.dataTransfer) {
+    if (e.dataTransfer) {
       const fileList = e.dataTransfer.files || [];
 
-      for (let i = 0; i < fileList.length; i ++) {
+      for (let i = 0; i < fileList.length; i++) {
         fileList[i].id = shortid.generate();
         fileList[i].status = status.PENDING;
         fileList[i].progress = 0;
@@ -120,6 +140,10 @@ Receiver.propTypes = {
   onFileDrop: PropTypes.func.isRequired,
   style: PropTypes.object,
   wrapperId: PropTypes.string,
+};
+
+Receiver.defaultProps = {
+  isOpen: false
 };
 
 export default Receiver;

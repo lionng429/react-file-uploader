@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import uploadStatus from './constants/status';
 
-const debug = require('debug')('react-file-upload:UploadHandler');
+const debug = require('debug')('react-file-uploader:UploadHandler');
 
 class UploadHandler extends Component {
   componentDidMount() {
@@ -35,11 +35,11 @@ class UploadHandler extends Component {
   }
 
   render() {
-    const { component, key, customClass, style } = this.props;
+    const { component, customClass, style } = this.props;
 
     return React.createElement(
       component,
-      { key, className: classNames(customClass), style },
+      { className: classNames(customClass), style },
       this.props.children
     );
   }
@@ -57,7 +57,6 @@ UploadHandler.propTypes = {
     PropTypes.arrayOf(PropTypes.string),
   ]),
   file: PropTypes.object.isRequired,
-  key: PropTypes.string,
   style: PropTypes.object,
   upload: PropTypes.func,
 };

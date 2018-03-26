@@ -2,13 +2,12 @@ import React, { Component, cloneElement } from 'react';
 import PropTypes from 'prop-types';
 import invariant from 'invariant';
 import classNames from 'classnames';
-import assign from 'lodash/assign';
 import bindKey from 'lodash/bindKey';
 import clone from 'lodash/clone';
-import request from 'superagent';
+import superagent from 'superagent';
 import uploadStatus from './constants/status';
 
-const debug = require('debug')('react-file-upload:UploadManager');
+const debug = require('debug')('react-file-uploader:UploadManager');
 
 class UploadManager extends Component {
   constructor(props) {
@@ -31,30 +30,46 @@ class UploadManager extends Component {
 
   upload(url, file) {
     const {
+      reqConfigs: {
+        accept = 'application/json',
+        method = 'post',
+        timeout,
+        withCredentials = false,
+      },
       onUploadStart,
       onUploadEnd,
       onUploadProgress,
+      formDataParser,
       uploadErrorHandler,
       uploadHeader = {},
     } = this.props;
 
     if (typeof onUploadStart === 'function') {
-      onUploadStart(assign(file, { status: uploadStatus.UPLOADING }));
+      onUploadStart(Object.assign(file, { status: uploadStatus.UPLOADING }));
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
+    let formData = new FormData();
+    formData = formDataParser(formData, file);
+
+    const request = superagent[method.toLowerCase()](url)
+      .accept(accept)
+      .set(uploadHeader);
+
+    if (timeout) {
+      request.timeout(timeout);
+    }
+
+    if (withCredentials) {
+      request.withCredentials();
+    }
 
     debug(`start uploading file#${file.id} to ${url}`, file);
 
     request
-      .post(url)
-      .accept('application/json')
-      .set(uploadHeader)
       .send(formData)
       .on('progress', ({ percent }) => {
         if (typeof onUploadProgress === 'function') {
-          onUploadProgress(assign(file, {
+          onUploadProgress(Object.assign(file, {
             progress: percent,
             status: uploadStatus.UPLOADING,
           }));
@@ -65,18 +80,17 @@ class UploadManager extends Component {
 
         if (error) {
           debug('failed to upload file', error);
-
-          if (typeof onUploadEnd === 'function') {
-            onUploadEnd(assign(file, { error, status: uploadStatus.FAILED }));
-          }
-
-          return;
+        } else {
+          debug('succeeded to upload file', result);
         }
 
-        debug('succeeded to upload file', res);
-
         if (typeof onUploadEnd === 'function') {
-          onUploadEnd(assign(file, { result, status: uploadStatus.UPLOADED }));
+          onUploadEnd(Object.assign(file, {
+            progress: error && 0 || 100,
+            error,
+            result: error && undefined || result,
+            status: error && uploadStatus.FAILED || uploadStatus.UPLOADED
+          }));
         }
       });
   }
@@ -87,7 +101,7 @@ class UploadManager extends Component {
     return React.createElement(
       component,
       { className: classNames(customClass), style },
-      React.Children.map(children, child => cloneElement(child, assign({
+      React.Children.map(children, child => cloneElement(child, Object.assign({
         upload: bindKey(this, 'upload', uploadUrl, child.props.file),
       }, child.props)))
     );
@@ -104,18 +118,33 @@ UploadManager.propTypes = {
     PropTypes.string,
     PropTypes.arrayOf(PropTypes.string),
   ]),
+  formDataParser: PropTypes.func,
   onUploadStart: PropTypes.func,
   onUploadProgress: PropTypes.func,
   onUploadEnd: PropTypes.func.isRequired,
+  reqConfigs: PropTypes.shape({
+    accept: PropTypes.string,
+    method: PropTypes.string,
+    timeout: PropTypes.shape({
+      response: PropTypes.number,
+      deadline: PropTypes.number,
+    }),
+    withCredentials: PropTypes.bool,
+  }),
   style: PropTypes.object,
-  uploadErrorHandler: PropTypes.func.isRequired,
+  uploadErrorHandler: PropTypes.func,
   uploadUrl: PropTypes.string.isRequired,
   uploadHeader: PropTypes.object,
 };
 
 UploadManager.defaultProps = {
   component: 'ul',
-  uploadErrorHandler: (err, res) => {
+  formDataParser: (formData, file) => {
+    formData.append('file', file);
+    return formData;
+  },
+  reqConfigs: {},
+  uploadErrorHandler: (err, res = {}) => {
     let error = null;
     const body = clone(res.body);
 
