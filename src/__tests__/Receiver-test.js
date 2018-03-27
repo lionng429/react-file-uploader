@@ -4,7 +4,7 @@ jest.dontMock('../index');
 jest.dontMock('classnames');
 
 import React from 'react';
-import { shallow, configure } from 'enzyme';
+import { mount, shallow, configure } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import { jsdom } from 'jsdom';
 
@@ -91,6 +91,20 @@ describe('Receiver', () => {
           onFileDrop={emptyFn}
         />
       )).toThrow();
+    });
+
+    it('should not throw an error if wrapperId is given and the element exists', () => {
+      expect(() => mount((
+        <div id="wrapper">
+          <Receiver
+            wrapperId="wrapper"
+            onDragEnter={emptyFn}
+            onDragOver={emptyFn}
+            onDragLeave={emptyFn}
+            onFileDrop={emptyFn}
+          />
+        </div>
+      ), { attachTo: document.body })).not.toThrow();
     });
   });
 
