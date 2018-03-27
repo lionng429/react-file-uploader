@@ -10,15 +10,6 @@ class Receiver extends Component {
     super(props);
 
     this.wrapper = window;
-
-    if (props.wrapperId) {
-      this.wrapper = document.getElementById(props.wrapperId);
-    }
-
-    if (!this.wrapper) {
-      throw new Error(`wrapper element with Id ${props.wrapperId} not found.`);
-    }
-
     this.onDragEnter = this.onDragEnter.bind(this);
     this.onDragOver = this.onDragOver.bind(this);
     this.onDragLeave = this.onDragLeave.bind(this);
@@ -36,6 +27,17 @@ class Receiver extends Component {
       (window.DragEvent || window.Event) && window.DataTransfer,
       'Browser does not support DnD events or File API.'
     );
+
+    const { wrapperId } = this.props;
+
+    if (wrapperId) {
+      invariant(
+        !!document.getElementById(wrapperId),
+        `wrapper element with Id ${wrapperId} not found.`
+      );
+
+      this.wrapper = document.getElementById(wrapperId);
+    }
 
     this.wrapper.addEventListener('dragenter', this.onDragEnter);
     this.wrapper.addEventListener('dragleave', this.onDragLeave);
