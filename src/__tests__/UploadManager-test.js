@@ -30,23 +30,32 @@ describe('UploadManager', () => {
     onUploadStart,
     onUploadProgress,
     onUploadEnd,
-    formDataParser,
+    uploadDataHandler,
+    uploadHeaderHandler,
     err,
     errorResponse,
     successResponse,
     errorHandler,
     file,
-    fileCopy;
+    fileCopy,
+    customHeader;
 
   beforeEach(() => {
     global.document = jsdom();
     global.window = document.parentWindow;
 
+    customHeader = {
+      'Accept': 'customAccept',
+      'Content-Type': 'customContentType',
+      'Content-Disposition': 'customContentDisposition'
+    };
+
     onUploadAbort = jest.genMockFn();
     onUploadStart = jest.genMockFn();
     onUploadProgress = jest.genMockFn();
     onUploadEnd = jest.genMockFn();
-    formDataParser = jest.genMockFn();
+    uploadDataHandler = jest.genMockFn();
+    uploadHeaderHandler = jest.genMockFn().mockReturnValue(customHeader);
 
     file = { id: 'fileId' };
     fileCopy = JSON.parse(JSON.stringify(file));
@@ -75,7 +84,8 @@ describe('UploadManager', () => {
         onUploadStart={onUploadStart}
         onUploadProgress={onUploadProgress}
         onUploadEnd={onUploadEnd}
-        formDataParser={formDataParser}
+        uploadDataHandler={uploadDataHandler}
+        uploadHeaderHandler={uploadHeaderHandler}
       >
         {children}
       </UploadManager>
@@ -111,6 +121,15 @@ describe('UploadManager', () => {
     });
   });
 
+  describe('uploadDataHandler()', () => {
+    it('should return a FileData instance with a file data set', () => {
+      const file = { data: 'fileData' },
+        result = UploadManager.defaultProps.uploadDataHandler(file);
+      expect(result).toBeInstanceOf(FormData);
+      expect(result.get('file')).toEqual(file.data);
+    });
+  });
+
   describe('uploadErrorHandler()', () => {
     it('should return an object contains key of `error` and `result`', () => {
       const result = errorHandler(null, successResponse);
@@ -132,6 +151,12 @@ describe('UploadManager', () => {
     });
   });
 
+  describe('uploadHeaderHandler()', () => {
+    it('should return an empty object', () => {
+      expect(UploadManager.defaultProps.uploadHeaderHandler()).toEqual({});
+    });
+  });
+
   describe('upload()', () => {
     it('should declare the request instance', () => {
       const instance = uploadManager.instance();
@@ -139,6 +164,9 @@ describe('UploadManager', () => {
 
       const request = instance.requests[file.id];
       expect(request._timeout).toEqual(timeout);
+      expect(request._header.accept).toEqual(customHeader['Accept']);
+      expect(request._header['content-type']).toEqual(customHeader['Content-Type']);
+      expect(request._header['content-disposition']).toEqual(customHeader['Content-Disposition']);
     });
 
     it('should call `props.onUploadStart` function if it is given', () => {
@@ -148,11 +176,18 @@ describe('UploadManager', () => {
       expect(file).toEqual(fileCopy);
     });
 
-    it('should call `props.formDataParser` function if it is given', () => {
-      const instance = uploadManager.instance();
-      const data = {};
-      instance.upload(instance.props.uploadUrl, { data });
-      expect(formDataParser).toBeCalledWith(new FormData(), data);
+    it('should call `props.uploadDataHandler` function if it is given', () => {
+      const instance = uploadManager.instance(),
+        file = {};
+      instance.upload(instance.props.uploadUrl, file);
+      expect(uploadDataHandler).toBeCalledWith(file);
+    });
+
+    it('should call `props.uploadHeaderHandler` function if it is given', () => {
+      const instance = uploadManager.instance(),
+        file = {};
+      instance.upload(instance.props.uploadUrl, file);
+      expect(uploadHeaderHandler).toBeCalledWith(file);
     });
   });
 

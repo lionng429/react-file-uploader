@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import bindKey from 'lodash/bindKey';
 import clone from 'lodash/clone';
 import debounce from 'lodash/debounce';
+import isEmpty from 'lodash/isEmpty';
 import superagent from 'superagent';
 import uploadStatus from './constants/status';
 
@@ -21,6 +22,14 @@ class UploadManager extends Component {
   }
 
   componentDidMount() {
+    if (this.props.uploadHeader) {
+      console.warn('`props.uploadHeader` is DEPRECATED. Please use `props.uploadHeaderHandler` instead.');
+    }
+
+    if (this.props.formDataParser) {
+      console.warn('`props.formDataParser` is DEPRECATED. Please use `props.uploadDataHandler` instead.');
+    }
+
     invariant(
       !!this.props.uploadUrl,
       'Upload end point must be provided to upload files'
@@ -72,21 +81,24 @@ class UploadManager extends Component {
       },
       onUploadStart,
       onUploadEnd,
-      formDataParser,
+      uploadDataHandler,
       uploadErrorHandler,
-      uploadHeader = {},
+      uploadHeaderHandler,
     } = this.props;
 
     if (typeof onUploadStart === 'function') {
       onUploadStart(file.id, { status: uploadStatus.UPLOADING });
     }
 
-    let formData = new FormData();
-    formData = formDataParser(formData, file.data);
+    let header = uploadHeaderHandler(file),
+      data = uploadDataHandler(file);
 
     let request = superagent[method.toLowerCase()](url)
-      .accept(accept)
-      .set(uploadHeader);
+      .accept(accept);
+
+    if (!isEmpty(header)) {
+      request.set(header);
+    }
 
     if (timeout) {
       request.timeout(timeout);
@@ -101,7 +113,7 @@ class UploadManager extends Component {
     debug(`start uploading file#${file.id} to ${url}`, file);
 
     request
-      .send(formData)
+      .send(data)
       .on('progress', ({ percent }) => this.onProgress(file.id, percent))
       .end((err, res) => {
         const { error, result } = uploadErrorHandler(err, res);
@@ -147,7 +159,6 @@ UploadManager.propTypes = {
     PropTypes.string,
     PropTypes.arrayOf(PropTypes.string),
   ]),
-  formDataParser: PropTypes.func,
   onUploadAbort: PropTypes.func,
   onUploadStart: PropTypes.func,
   onUploadProgress: PropTypes.func,
@@ -163,19 +174,21 @@ UploadManager.propTypes = {
     withCredentials: PropTypes.bool,
   }),
   style: PropTypes.object,
+  uploadDataHandler: PropTypes.func,
   uploadErrorHandler: PropTypes.func,
+  uploadHeaderHandler: PropTypes.func,
   uploadUrl: PropTypes.string.isRequired,
-  uploadHeader: PropTypes.object,
 };
 
 UploadManager.defaultProps = {
   component: 'ul',
-  formDataParser: (formData, fileData) => {
-    formData.append('file', fileData);
-    return formData;
-  },
   progressDebounce: 150,
   reqConfigs: {},
+  uploadDataHandler: (file) => {
+    const formData = new FormData();
+    formData.append('file', file.data);
+    return formData;
+  },
   uploadErrorHandler: (err, res = {}) => {
     const body = res.body ? clone(res.body) : {};
     let error = null;
@@ -190,6 +203,7 @@ UploadManager.defaultProps = {
 
     return { error, result: body };
   },
+  uploadHeaderHandler: (file) => ({})
 };
 
 export default UploadManager;

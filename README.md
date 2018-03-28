@@ -120,7 +120,6 @@ import { UploadManager } from 'react-file-uploader';
 <UploadManager
   component={STRING}
   customClass={STRING_OR_ARRAY}
-  formDataParser={FUNCTION}
   onUploadAbort={FUNCTION}
   onUploadStart={FUNCTION}
   onUploadProgress={FUNCTION}
@@ -128,8 +127,9 @@ import { UploadManager } from 'react-file-uploader';
   progressDebounce={NUMBER}
   reqConfigs={OBJECT}
   style={OBJECT}
+  uploadDataHandler={FUNCTION}
   uploadErrorHandler={FUNCTION}
-  uploadHeader={OBJECT}
+  uploadHeaderHandler={FUNCTION}
 	uploadUrl={STRING}
 >
 	// UploadHandler as children
@@ -145,19 +145,7 @@ import { UploadManager } from 'react-file-uploader';
 
 * component - `string`: the DOM tag name of the wrapper. By default it is an unordered list `ul`.
 * customClass - `string | array`: the class name(s) for the wrapper
-* formDataParser - `function`: the parser function of the form data to be send through the upload request.
-
-```
-/**
- * @param formData {FormData} FormData instance
- * @param fileData {File Object} File data object
- * @returns {FormData} decorated FormData instance
- */
-let formDataParser = (formData, fileData) => {
-	formData.append('file', fileData);
-	return formData;
-}
-```
+* formDataParser - **DEPRECATED** this prop function is renamed as `uploadDataHandler` starting from v1.0.0.
 
 * onUploadAbort - `function`: this will be fired when the upload request is aborted. This function is available from v1.0.0.
 
@@ -212,7 +200,21 @@ let onUploadEnd = (fileId, { error, progress, result, status }) => { ... }
 * reqConfigs - `object`: the exposed superagent configs including `accept`, `method`, `timeout` and `withCredentials`.
 * style - `object`: the style property for the wrapper.
 * uploadUrl - `string` `required`: the url of the upload end point from your server.
-* uploadHeader - `object`: the header object to be set as request header.
+* uploadDataHandler - `function`: this function is to parse the data to be sent as request data. From v1.0.0, the first argument will become a upload task object instead of the File instance.
+
+```
+let uploadDataHandler = (upload) => {
+	// for FormData
+	const formData = new FormData();
+	formData.append('file', upload.data);
+	formData.append('custom-key', 'custom-value');
+	return formData;
+
+	// for AWS S3
+	return upload.data;
+}
+```
+
 * uploadErrorHandler - `function`: this function is to process the arguments of `(err, res)` in `superagent.end()`. In this function, you can resolve the error and result according to your upload api response. Default implementation is available as defaultProps.
 
 ```
@@ -229,6 +231,20 @@ function uploadErrorHandler(err, res) {
 	delete body.errors;
 
 	return { error, result: body };
+}
+```
+
+* uploadHeader - **DEPRECATED** this prop is deprecated and replaced by `uploadHeaderHandler`.
+
+* uploadHeaderHandler - `function`: the function is to parse the header object to be sent as request header.
+
+```
+let uploadHeaderHandler = (upload) => {
+	// for AWS S3
+	return {
+		'Content-Type': upload.data.type,
+		'Content-Disposition': 'inline'
+	};
 }
 ```
 
