@@ -29,6 +29,7 @@ this module currently contains 4 major entities, which are
 import { Receiver } from 'react-file-uploader';
 
 <Receiver
+	wrapperId={STRING}
   customClass={STRING_OR_ARRAY}
   style={OBJECT}
   isOpen={BOOLEAN}
@@ -45,6 +46,7 @@ import { Receiver } from 'react-file-uploader';
 
 ## Props
 
+* wrapperId - `string`: Optional HTML element id for the DnD area. If not given, `window` will be used instead.
 * customClass - `string | array`: the class name(s) for the `div` wrapper
 * style - `object`: the style for the `div` wrapper 
 * isOpen - `boolean` `required`: to control in the parent component whether the Receiver is visble.
@@ -82,23 +84,23 @@ function onDragLeave(e) {
 ```
 // @param e Object DragEvent
 // @param files Array the files dropped on the target node
-function onFileDrop(e, files) {
+function onFileDrop(e, uploads) {
 	// check if the files are drop on the targeted DOM
 	const node = ReactDOM.findDOMNode(this.refs.uploadPanel);
 	if (e.target !== node) {
 		return;
 	}
 	
-	files.forEach(file => {
+	let newUploads = uploads.map(upload => {
 		// check file size
-		if (file.size > 1000 * 1000) {
-			file.error = 'file size exceeded 1MB';
+		if (upload.data.size > 1000 * 1000) {
+		  return Object.assign({}, upload, { error: 'file size exceeded 1MB' });
 		}
 	})
 	
 	// put files into state/stores by setState/action
 	this.setState({
-		files: this.state.files.concat(files),
+		uploads: this.state.uploads.concat(newUploads)),
 	});
 	
 	// close the Receiver after file dropped
@@ -110,81 +112,123 @@ function onFileDrop(e, files) {
 
 Upload Manager serves as a high order component which helps you to manage the upload related parameters and functions. It prepares the upload function with [`superagent`](https://github.com/visionmedia/superagent) the children elements, and helps you to update the lifecycle status of the uploading files.
 
-**_IMPORTANT: this high order component serves only for_ ** `UploadHandler`
-
 ```
 import { UploadManager } from 'react-file-uploader';
 
 <UploadManager
+  component={STRING}
   customClass={STRING_OR_ARRAY}
-  style={OBJECT}
-  uploadUrl={STRING}
-  uploadHeader={OBJECT}
-  onUpload={FUNCTION}
+  formDataParser={FUNCTION}
+  onUploadAbort={FUNCTION}
+  onUploadStart={FUNCTION}
   onUploadProgress={FUNCTION}
   onUploadEnd={FUNCTION}
+  progressDebounce={NUMBER}
+  reqConfigs={OBJECT}
+  style={OBJECT}
+  uploadErrorHandler={FUNCTION}
+  uploadHeader={OBJECT}
+	uploadUrl={STRING}
 >
-	
 	// UploadHandler as children
-	files.map(file => (
-		<UploadHandle key={file._id} file={FILE_INSTANCE} autoStart={BOOLEAN} />
-	))
+	{
+		files.map(file => (
+			<UploadHandler key={file._id} file={FILE_INSTANCE} autoStart={BOOLEAN} />
+		))
+	}
 </UploadManager>
 ```
 
 ## Props
 
-* component - `string`: the DOM tag name of the wrapper
+* component - `string`: the DOM tag name of the wrapper. By default it is an unordered list `ul`.
 * customClass - `string | array`: the class name(s) for the wrapper
-* style - `object`: the style for the wrapper
+* formDataParser - `function`: the parser function of the form data to be send through the upload request.
+
+```
+/**
+ * @param formData {FormData} FormData instance
+ * @param fileData {File Object} File data object
+ * @returns {FormData} decorated FormData instance
+ */
+let formDataParser = (formData, fileData) => {
+	formData.append('file', fileData);
+	return formData;
+}
+```
+
+* onUploadAbort - `function`: this will be fired when the upload request is aborted. This function is available from v1.0.0.
+
+```
+/**
+ * @param fileId {string} identifier of a file / an upload task
+ * @param changes {object} changes object containing the new property of an upload
+ * @param changes.status {number} file status ABORTED
+ */
+let onUploadAbort = (fileId, { status }) => { ... }
+```
+
+* onUploadStart - `function`: this will be fired when the upload request is just sent.
+
+```
+/**
+ * @param fileId {string} identifier of a file / an upload task
+ * @param changes {object} changes object containing the new property of an upload
+ * @param changes.status {number} file status UPLOADING
+ */
+let onUploadStart = (fileId, { status }) => { ... }
+```
+
+* onUploadProgress - `function`: this will be fired when the upload request returns progress. From v1.0.0, this callback is debounced for `props.progressDebounce` ms.
+
+```
+/**
+ * @param fileId {string} identifier of a file / an upload task
+ * @param changes {object} changes object containing the new property of an upload
+ * @param changes.progress {number} upload progress in percentage
+ * @param changes.status {number} file status UPLOADING
+ */
+let onUploadProgress = (fileId, { progress, status }) { ... }
+```
+
+* onUploadEnd - `function` `required`: this will be fired upon the end of upload request.
+
+```
+/**
+ * @param fileId {string} identifier of a file / an upload task
+ * @param changes {object} changes object containing the new property of an upload
+ * @param changes.error {object} error returned from `props.uploadErrorHandler`
+ * @param changes.progress {number} upload progress in percentage, either 0 or 100 with a corresponding FAILED or UPLOADED status
+ * @param changes.result {object} upload result / response object returned from `props.uploadErrorHandler`
+ * @param changes.status {number} file status, either FAILED or UPLOADED
+ */
+// @param file Object the file object returned with either UPLOADED or FAILED status and 100% progress. When it is wilh FAILED status, error property should be also assigned to the file object.
+let onUploadEnd = (fileId, { error, progress, result, status }) => { ... }
+```
+
+* progressDebounce - `number`: debounce value in ms for the callback on superagent `progress`.
+* reqConfigs - `object`: the exposed superagent configs including `accept`, `method`, `timeout` and `withCredentials`.
+* style - `object`: the style property for the wrapper.
 * uploadUrl - `string` `required`: the url of the upload end point from your server.
 * uploadHeader - `object`: the header object to be set as request header.
-* onUploadStart - `function`: this will be fired when the `POST` request is just sent.
+* uploadErrorHandler - `function`: this function is to process the arguments of `(err, res)` in `superagent.end()`. In this function, you can resolve the error and result according to your upload api response. Default implementation is available as defaultProps.
 
 ```
-// @param file Object the file object returned with UPLOADING status and 0% progress.
-function onUploadStart(file) {
-	// your codes here
+function uploadErrorHandler(err, res) {
+  const body = res.body ? clone(res.body) : {};
+	let error = null;
+
+	if (err) {
+		error = err.message;
+	} else if (body.errors) {
+		error = body.errors;
+	}
+
+	delete body.errors;
+
+	return { error, result: body };
 }
 ```
-
-* onUploadProgress - `function`: this will be fired when the `POST` request returns progress. A debounced function is **STRONGLY** recommaned to prevent from performance issue.
-
-```
-// @param file Object the file object returned with UPLOADING status and n% progress.
-function onUploadProgress(file) {
-	// your codes here
-}
-```
-
-* onUploadEnd - `function` `required`: this will be fired upon the end of `POST` request.
-
-```
-// @param file Object the file object returned with either UPLOADED or FAILED status and 100% progress. When it is wilh FAILED status, error property should be also assigned to the file object.
-function onUploadEnd(file) {
-	// your codes here
-}
-```
-
-* errorHandler - `function`: this function is to process the arguments of `(err, res)` in `superagent.end()`. In this function, you can resolve the error and result according to your upload api response. Default implementation is available as defaultProps.
-
-```
-function errorHandler(err, res) {
-  let error = null;
-  const body = clone(res.body);
-
-  if (err) {
-  	error = err;
-  } else if (body && body.errors) {
-    error = body.errors;
-  }
-  
-  delete body.errors;
-  
-  return { error, result: body };
-}
-```
-
 
 # UploadHandler
 
@@ -199,25 +243,52 @@ import { UploadHandler } from 'react-file-uploader';
 	file={FILE_OBJECT}
 	autoStart={BOOLEAN}
 	upload={UPLOAD_FUNCTION}
-/>
+>
+	{
+		// From v1.0.0, you can pass a render function as children, so to have access to the prepared `upload` and `abort` function.
+		({ upload, abort }) => (
+			<dl>
+				<dt>{file.data.name}</dt>
+				<dd>
+					<span className="file__id">{file.id} </span>
+					<span className="file__type">{file.data.type} </span>
+					<span className="file__size">{file.data.size / 1000 / 1000} MB</span>
+					<span className="file__progress">{file.progress}%</span>
+					<span className="file__status">
+						{this.getStatusString(file.status)}
+					</span>
+					<span className="file__error">{file.error}</span>
+					{
+						((index % 2 === 1 && file.status === 0) || file.status === -2) && (
+							<button onClick={upload}>Upload</button>
+						)
+					}
+					{
+						file.status === 1 && (
+							<button onClick={abort}>Abort</button>
+						)
+					}
+				</dd>
+			</dl>
+		)
+	}
+</UploadHandler>
 ```
 
 ## Props
 
-* `component` - `string`: the DOM tag name of the wrapper
+* `abort` - `function` the function to abort the upload request. It is provided by UploadManager HOC by default.
+* `autoStart` - `boolean`: when `autoStart` is set, upon the UploadHandler `componentDidMount`, it will detect if the file i.e. *as props* is with the `PENDING` status and initialise an upload request which is sent to the `uploadUrl` you passed to the `UploadManager`.
+* `component` - `string`: the DOM tag name of the wrapper.
 * `customClass` - `string | array`: the class name(s) for the wrapper
 * `style` - `object`: the style for the wrapper 
 * `file` - `object` `required`: the file object that is **_uploaded / going to be uploaded_**.
-* `autoStart` - `boolean`: when `autoStart` is set to `true`, upon the UploadHandler component did mount, it will detect if the file i.e. *as props* is with the `PENDING` status and initialise a `POST` request which is sent to the `uploadUrl` you passed to the `UploadManager`.
 * `upload` - `function`: the function that contains the upload logic, you may pass it directly when you are using `UploadHandler` alone, or it could be prepared by `UploadManager`.
 
- 
 ```
 // @param url String API upload end point
 // @param file Object File Object
-function upload(url, file) {
-	// your codes here
-}
+let upload = (url, file) => { ... }
 ```
 
 # File Status
@@ -225,6 +296,7 @@ function upload(url, file) {
 `react-file-uploader` defines a set of status constants to represent the file status. The corresponding status will be assign to a file object throughout the uploading life cycle.
 
 ```
+ABORTED = -2
 FAILED = -1
 PENDING = 0
 UPLOADING = 1
@@ -235,7 +307,6 @@ UPLOADED = 2
 
 * complete test cases
 * add real-world example
-* support optional data, i.e. custom image name and destination
 
 # License
 
