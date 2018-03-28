@@ -1,8 +1,10 @@
 # react-file-uploader
 
-react-file-uploader is a set of highly customizable React components that helps you to build a file uploader in your application easily. 
+react-file-uploader is a set of customizable React components that helps you to build a file uploader in your application easily.
 
-react-file-uploader is not production ready because it is not fully tested on all browsers, and the unit test coverage is just not good enough. However, it has been used in my cms project since v0.3.0.
+It is expected to be production ready from v1.0.0, although v0.4.1 provides a stable but very simple and limited usage.
+
+It is worth to mention the default uploading implementation in `UploadManager` is biased with FormData, which is not configurable at this moment.
 
 ## Installation
 
@@ -307,6 +309,7 @@ UPLOADED = 2
 
 * complete test cases
 * add real-world example
+* verify and provide better support to Amazon Simple Storage Service
 
 # License
 
