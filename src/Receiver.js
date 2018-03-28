@@ -31,12 +31,14 @@ class Receiver extends Component {
     const { wrapperId } = this.props;
 
     if (wrapperId) {
+      const wrapperElement = document.getElementById(wrapperId);
+
       invariant(
-        !!document.getElementById(wrapperId),
+        !!wrapperElement,
         `wrapper element with Id ${wrapperId} not found.`
       );
 
-      this.wrapper = document.getElementById(wrapperId);
+      this.wrapper = wrapperElement;
     }
 
     this.wrapper.addEventListener('dragenter', this.onDragEnter);
