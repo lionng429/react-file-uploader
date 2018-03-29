@@ -4,7 +4,7 @@ react-file-uploader is a set of customizable React components that helps you to 
 
 It is expected to be production ready from v1.0.0, although v0.4.1 provides a stable but very simple and limited usage.
 
-It is worth to mention the default uploading implementation in `UploadManager` is biased with FormData, which is not configurable at this moment.
+The uploading implementation is coupled with [superagent](https://visionmedia.github.io/superagent/), and the `method`, `header` and `data` are configurable with props.
 
 ## Installation
 
@@ -31,7 +31,7 @@ this module currently contains 4 major entities, which are
 import { Receiver } from 'react-file-uploader';
 
 <Receiver
-	wrapperId={STRING}
+  wrapperId={STRING}
   customClass={STRING_OR_ARRAY}
   style={OBJECT}
   isOpen={BOOLEAN}
@@ -40,9 +40,9 @@ import { Receiver } from 'react-file-uploader';
   onDragLeave={FUNCTION}
   onFileDrop={FUNCTION}
 >
-    <div>
-      visual layer of the receiver (drag & drop panel)
-    </div>
+  <div>
+    visual layer of the receiver (drag & drop panel)
+  </div>
 </Receiver>
 ```
 
