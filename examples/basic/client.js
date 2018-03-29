@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
-import _ from 'lodash';
 import * as FileUploader from '../../src/index';
 
 class MyComponent extends Component {
@@ -52,33 +51,37 @@ class MyComponent extends Component {
       return false;
     }
 
-    files.forEach(item => {
-      if (item.size > 1000 * 1000) {
-        item.status = FileUploader.status.FAILED;
-        item.error = 'file size exceeded maximum';
+    const uploads = files.map((item = {}) => {
+      if (item.data.size > 100 * 1000 * 1000) {
+        return Object.assign({}, item, {
+          status: FileUploader.status.FAILED,
+          error: 'file size exceeded maximum',
+        });
       }
+
+      return item;
     });
 
     this.setState({
-      files: this.state.files.concat(files),
+      files: this.state.files.concat(uploads),
     });
 
     // if you want to close the panel upon file drop
     this.closePanel();
   }
 
-  onFileProgress(file) {
-    const { files = [] } = this.state;
-    const newFiles = files.map(item => item.id === file.id ? file : item);
+  onFileProgress(fileId, fileData) {
+    const { files = [] } = this.state,
+      newFiles = files.map(item => item.id === fileId ? Object.assign({}, item, fileData) : item);
 
     this.setState({
       files: newFiles,
     });
   }
 
-  onFileUpdate(file) {
-    const { files = [] } = this.state;
-    const newFiles = files.map(item => item.id === file.id ? file : item);
+  onFileUpdate(fileId, fileData) {
+    const { files = [] } = this.state,
+      newFiles = files.map(item => item.id === fileId ? Object.assign({}, item, fileData) : item);
 
     this.setState({
       files: newFiles,
@@ -91,6 +94,9 @@ class MyComponent extends Component {
 
   getStatusString(status) {
     switch (status) {
+      case -2:
+        return 'aborted';
+
       case -1:
         return 'failed';
 
@@ -134,26 +140,41 @@ class MyComponent extends Component {
             customClass="upload-list"
             files={this.state.files}
             uploadUrl="/upload"
+            onUploadAbort={this.onFileUpdate}
             onUploadStart={this.onFileUpdate}
-            onUploadProgress={_.debounce(this.onFileProgress, 150)}
+            onUploadProgress={this.onFileProgress}
             onUploadEnd={this.onFileUpdate}
           >
             {
               this.state.files.map((file, index) => (
-                <FileUploader.UploadHandler key={index} file={file} autoStart>
-                  <dl>
-                    <dt>{file.name}</dt>
-                    <dd>
-                      <span className="file__id">{file.id} </span>
-                      <span className="file__type">{file.type} </span>
-                      <span className="file__size">{file.size / 1000 / 1000} MB</span>
-                      <span className="file__progress">{file.progress}%</span>
-                      <span className="file__status">
-                        {this.getStatusString(file.status)}
-                      </span>
-                      <span className="file__error">{file.error}</span>
-                    </dd>
-                  </dl>
+                <FileUploader.UploadHandler key={index} file={file} autoStart={index % 2 === 0}>
+                  {
+                    ({ upload, abort }) => (
+                      <dl>
+                        <dt>{file.data.name}</dt>
+                        <dd>
+                          <span className="file__id">{file.id} </span>
+                          <span className="file__type">{file.data.type} </span>
+                          <span className="file__size">{file.data.size / 1000 / 1000} MB</span>
+                          <span className="file__progress">{file.progress}%</span>
+                          <span className="file__status">
+                            {this.getStatusString(file.status)}
+                          </span>
+                          <span className="file__error">{file.error}</span>
+                          {
+                            ((index % 2 === 1 && file.status === 0) || file.status === -2) && (
+                              <button onClick={upload}>Upload</button>
+                            )
+                          }
+                          {
+                            file.status === 1 && (
+                              <button onClick={abort}>Abort</button>
+                            )
+                          }
+                        </dd>
+                      </dl>
+                    )
+                  }
                 </FileUploader.UploadHandler>
               ))
             }

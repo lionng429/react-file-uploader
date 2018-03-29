@@ -4,6 +4,8 @@ import invariant from 'invariant';
 import classNames from 'classnames';
 import bindKey from 'lodash/bindKey';
 import clone from 'lodash/clone';
+import debounce from 'lodash/debounce';
+import isEmpty from 'lodash/isEmpty';
 import superagent from 'superagent';
 import uploadStatus from './constants/status';
 
@@ -13,10 +15,21 @@ class UploadManager extends Component {
   constructor(props) {
     super(props);
 
+    this.requests = {};
+    this.abort = this.abort.bind(this);
     this.upload = this.upload.bind(this);
+    this.onProgress = debounce(this.onProgress.bind(this), props.progressDebounce);
   }
 
   componentDidMount() {
+    if (this.props.uploadHeader) {
+      console.warn('`props.uploadHeader` is DEPRECATED. Please use `props.uploadHeaderHandler` instead.');
+    }
+
+    if (this.props.formDataParser) {
+      console.warn('`props.formDataParser` is DEPRECATED. Please use `props.uploadDataHandler` instead.');
+    }
+
     invariant(
       !!this.props.uploadUrl,
       'Upload end point must be provided to upload files'
@@ -26,6 +39,36 @@ class UploadManager extends Component {
       !!this.props.onUploadEnd,
       'onUploadEnd function must be provided'
     );
+  }
+
+  onProgress(fileId, progress) {
+    const { onUploadProgress } = this.props,
+      request = this.requests[fileId];
+
+    if (request.xhr && request.xhr.readyState !== 4 && !request.aborted) {
+      if (typeof onUploadProgress === 'function') {
+        onUploadProgress(fileId, {
+          progress,
+          status: uploadStatus.UPLOADING,
+        });
+      }
+    }
+  }
+
+  abort(file = {}) {
+    const { onUploadAbort } = this.props,
+      request = this.requests[file.id];
+
+    if (!request) {
+      debug('request instance not found.');
+      return;
+    }
+
+    request.abort();
+
+    if (typeof onUploadAbort === 'function') {
+      onUploadAbort(file.id, { status: uploadStatus.ABORTED });
+    }
   }
 
   upload(url, file) {
@@ -38,22 +81,24 @@ class UploadManager extends Component {
       },
       onUploadStart,
       onUploadEnd,
-      onUploadProgress,
-      formDataParser,
+      uploadDataHandler,
       uploadErrorHandler,
-      uploadHeader = {},
+      uploadHeaderHandler,
     } = this.props;
 
     if (typeof onUploadStart === 'function') {
-      onUploadStart(Object.assign(file, { status: uploadStatus.UPLOADING }));
+      onUploadStart(file.id, { status: uploadStatus.UPLOADING });
     }
 
-    let formData = new FormData();
-    formData = formDataParser(formData, file);
+    let header = uploadHeaderHandler(file),
+      data = uploadDataHandler(file);
 
-    const request = superagent[method.toLowerCase()](url)
-      .accept(accept)
-      .set(uploadHeader);
+    let request = superagent[method.toLowerCase()](url)
+      .accept(accept);
+
+    if (!isEmpty(header)) {
+      request.set(header);
+    }
 
     if (timeout) {
       request.timeout(timeout);
@@ -63,18 +108,13 @@ class UploadManager extends Component {
       request.withCredentials();
     }
 
+    this.requests[file.id] = request;
+
     debug(`start uploading file#${file.id} to ${url}`, file);
 
     request
-      .send(formData)
-      .on('progress', ({ percent }) => {
-        if (typeof onUploadProgress === 'function') {
-          onUploadProgress(Object.assign(file, {
-            progress: percent,
-            status: uploadStatus.UPLOADING,
-          }));
-        }
-      })
+      .send(data)
+      .on('progress', ({ percent }) => this.onProgress(file.id, percent))
       .end((err, res) => {
         const { error, result } = uploadErrorHandler(err, res);
 
@@ -85,12 +125,12 @@ class UploadManager extends Component {
         }
 
         if (typeof onUploadEnd === 'function') {
-          onUploadEnd(Object.assign(file, {
+          onUploadEnd(file.id, {
             progress: error && 0 || 100,
             error,
             result: error && undefined || result,
             status: error && uploadStatus.FAILED || uploadStatus.UPLOADED
-          }));
+          });
         }
       });
   }
@@ -102,6 +142,7 @@ class UploadManager extends Component {
       component,
       { className: classNames(customClass), style },
       React.Children.map(children, child => cloneElement(child, Object.assign({
+        abort: bindKey(this, 'abort', child.props.file),
         upload: bindKey(this, 'upload', uploadUrl, child.props.file),
       }, child.props)))
     );
@@ -118,10 +159,11 @@ UploadManager.propTypes = {
     PropTypes.string,
     PropTypes.arrayOf(PropTypes.string),
   ]),
-  formDataParser: PropTypes.func,
+  onUploadAbort: PropTypes.func,
   onUploadStart: PropTypes.func,
   onUploadProgress: PropTypes.func,
   onUploadEnd: PropTypes.func.isRequired,
+  progressDebounce: PropTypes.number,
   reqConfigs: PropTypes.shape({
     accept: PropTypes.string,
     method: PropTypes.string,
@@ -132,25 +174,28 @@ UploadManager.propTypes = {
     withCredentials: PropTypes.bool,
   }),
   style: PropTypes.object,
+  uploadDataHandler: PropTypes.func,
   uploadErrorHandler: PropTypes.func,
+  uploadHeaderHandler: PropTypes.func,
   uploadUrl: PropTypes.string.isRequired,
-  uploadHeader: PropTypes.object,
 };
 
 UploadManager.defaultProps = {
   component: 'ul',
-  formDataParser: (formData, file) => {
-    formData.append('file', file);
+  progressDebounce: 150,
+  reqConfigs: {},
+  uploadDataHandler: (file) => {
+    const formData = new FormData();
+    formData.append('file', file.data);
     return formData;
   },
-  reqConfigs: {},
   uploadErrorHandler: (err, res = {}) => {
+    const body = res.body ? clone(res.body) : {};
     let error = null;
-    const body = clone(res.body);
 
     if (err) {
       error = err.message;
-    } else if (body && body.errors) {
+    } else if (body.errors) {
       error = body.errors;
     }
 
@@ -158,6 +203,7 @@ UploadManager.defaultProps = {
 
     return { error, result: body };
   },
+  uploadHeaderHandler: (file) => ({})
 };
 
 export default UploadManager;
