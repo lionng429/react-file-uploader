@@ -22,11 +22,15 @@ class UploadManager extends Component {
   }
 
   componentDidMount() {
+    // eslint-disable-next-line react/prop-types
     if (this.props.uploadHeader) {
+      // eslint-disable-next-line no-console
       console.warn('`props.uploadHeader` is DEPRECATED. Please use `props.uploadHeaderHandler` instead.');
     }
 
+    // eslint-disable-next-line react/prop-types
     if (this.props.formDataParser) {
+      // eslint-disable-next-line no-console
       console.warn('`props.formDataParser` is DEPRECATED. Please use `props.uploadDataHandler` instead.');
     }
 
@@ -203,7 +207,7 @@ UploadManager.defaultProps = {
 
     return { error, result: body };
   },
-  uploadHeaderHandler: (file) => ({})
+  uploadHeaderHandler: () => ({})
 };
 
 export default UploadManager;
