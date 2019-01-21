@@ -72,6 +72,6 @@
     "prop-types": "^15.5.10",
     "react": "^15.0.0 || ^16.0.0",
     "shortid": "^2.2.6",
-    "superagent": "^1.4.0"
+    "superagent": ">=3.7.0"
   }
 }
