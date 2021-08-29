@@ -38,6 +38,7 @@ describe('UploadManager', () => {
     errorHandler,
     file,
     fileCopy,
+     save file,           
     customHeader;
 
   beforeEach(() => {
